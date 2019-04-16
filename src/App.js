@@ -1,22 +1,39 @@
 import React, { Component } from "react";
+import { API, graphqlOperation } from "aws-amplify";
 import { withAuthenticator } from "aws-amplify-react";
+import { createNote } from "./graphql/mutations";
 
 class App extends Component {
 	state = {
-		notes: [
-			{
-				id: 1,
-				note: "Hello World"
-			}
-		]
+		notes: [],
+		note: ""
 	};
+
+	handleChangeNote = (e) => {
+		this.setState({ note: e.target.value });
+	};
+
+	handleAddNote = (e) => {
+		const { note } = this.state;
+		e.preventDefault();
+		const input = {
+			note
+		};
+		API.graphql(graphqlOperation(createNote, { input }));
+	};
+
 	render() {
 		const { notes } = this.state;
 		return (
 			<div className="flex flex-column items-center justify-center pa3 bg-washed-red">
 				<h1 className="code f2-l">Note Taker</h1>
-				<form className="mb3">
-					<input type="text" className="pa2 f4" placeholder="Write Your Note" />
+				<form onSubmit={this.handleAddNote} className="mb3">
+					<input
+						type="text"
+						className="pa2 f4"
+						placeholder="Write Your Note"
+						onChange={this.handleChangeNote}
+					/>
 					<button className="pa2 f4">Add Note</button>
 				</form>
 				{/* Notes List*/}
