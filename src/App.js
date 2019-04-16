@@ -7,6 +7,7 @@ import { listNotes } from "./graphql/queries";
 class App extends Component {
 	state = {
 		notes: [],
+		id: "",
 		note: ""
 	};
 
@@ -18,10 +19,21 @@ class App extends Component {
 	handleChangeNote = (e) => {
 		this.setState({ note: e.target.value });
 	};
+	hasExistingNote = () => {
+		const { notes, id } = this.state;
+		if (id) {
+			//is this a valid id?
+			const isNote = notes.findIndex((note) => note.id === id) > -1;
+			return isNote;
+		}
+		return false;
+	};
 
 	handleAddNote = async (e) => {
 		const { note, notes } = this.state;
 		e.preventDefault();
+
+		//Check if there is an existing note, and if so update it
 		const input = {
 			note
 		};
@@ -38,6 +50,10 @@ class App extends Component {
 		const deletedNoteId = result.data.deleteNote.id;
 		const updatedNotes = notes.filter((note) => note.id !== deletedNoteId);
 		this.setState({ notes: updatedNotes });
+	};
+
+	handleSetNote = ({ note, id }) => {
+		this.setState({ note, id });
 	};
 
 	render() {
@@ -59,7 +75,12 @@ class App extends Component {
 				<div>
 					{notes.map((item) => (
 						<div key={item.id} className="flex items-center">
-							<li className="list pa1 f3">{item.note}</li>
+							<li
+								onClick={() => this.handleSetNote(item)}
+								className="list pa1 f3"
+							>
+								{item.note}
+							</li>
 							<button
 								onClick={() => this.handleDeleteNote(item.id)}
 								className="bg-transparent bn f4"
