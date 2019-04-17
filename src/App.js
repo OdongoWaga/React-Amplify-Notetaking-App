@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { API, graphqlOperation } from "aws-amplify";
 import { withAuthenticator } from "aws-amplify-react";
-import { createNote, deleteNote } from "./graphql/mutations";
+import { createNote, deleteNote, updateNote } from "./graphql/mutations";
 import { listNotes } from "./graphql/queries";
 
 class App extends Component {
@@ -34,13 +34,31 @@ class App extends Component {
 		e.preventDefault();
 
 		//Check if there is an existing note, and if so update it
-		const input = {
-			note
-		};
-		const result = await API.graphql(graphqlOperation(createNote, { input }));
-		const newNote = result.data.createNote;
-		const updatedNotes = [newNote, ...notes];
-		this.setState({ notes: updatedNotes, note: "" });
+		if (this.hasExistingNote()) {
+			this.handleUpdateNote();
+		} else {
+			const input = {
+				note
+			};
+			const result = await API.graphql(graphqlOperation(createNote, { input }));
+			const newNote = result.data.createNote;
+			const updatedNotes = [newNote, ...notes];
+			this.setState({ notes: updatedNotes, note: "" });
+		}
+	};
+
+	handleUpdateNote = async () => {
+		const { id, note, notes } = this.state;
+		const input = { id, note };
+		const result = await API.graphql(graphqlOperation(updateNote, { input }));
+		const updatedNote = result.data.updateNote;
+		const index = notes.findIndex((note) => note.id === updatedNote.id);
+		const updatedNotes = [
+			...notes.slice(0, index),
+			updatedNote,
+			...notes.slice(index + 1)
+		];
+		this.setState({ notes: updatedNotes, note: "", id: "" });
 	};
 
 	handleDeleteNote = async (noteId) => {
@@ -57,7 +75,7 @@ class App extends Component {
 	};
 
 	render() {
-		const { notes, note } = this.state;
+		const { notes, note, id } = this.state;
 		return (
 			<div className="flex flex-column items-center justify-center pa3 bg-washed-red">
 				<h1 className="code f2-l">Note Taker</h1>
@@ -69,7 +87,7 @@ class App extends Component {
 						onChange={this.handleChangeNote}
 						value={note}
 					/>
-					<button className="pa2 f4">Add Note</button>
+					<button className="pa2 f4">{id ? "Update Note" : "Add Note"}</button>
 				</form>
 				{/* Notes List*/}
 				<div>
