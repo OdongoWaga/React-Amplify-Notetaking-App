@@ -61,6 +61,8 @@ class App extends Component {
 
 	componentWillUnmount() {
 		this.createNoteListener.unsubscribe();
+		this.deleteNoteListener.unsubscribe();
+		this.updateNoteListener.unsubscribe();
 	}
 
 	getNotes = async () => {
