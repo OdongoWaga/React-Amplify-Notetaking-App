@@ -25,6 +25,8 @@ const App = () => {
 					const oldNotes = prevNotes.filter((note) => note.id !== newNote.id);
 					const updatedNotes = [...oldNotes, newNote];
 					return updatedNotes;
+				});
+				setNote("");
 			}
 		});
 		const deleteNoteListener = API.graphql(
@@ -32,11 +34,12 @@ const App = () => {
 		).subscribe({
 			next: (noteData) => {
 				const deletedNote = noteData.value.data.onDeleteNote;
-				
-				// const updatedNotes = this.state.notes.filter(
-				// 	(note) => note.id !== deletedNote.id
-				// );
-				// this.setState({ notes: updatedNotes });
+				setNotes((prevNotes) => {
+					const updatedNotes = prevNotes.filter(
+						(note) => note.id !== deletedNote.id
+					);
+					return updatedNotes;
+				});
 			}
 		});
 
@@ -44,15 +47,21 @@ const App = () => {
 			graphqlOperation(onUpdateNote)
 		).subscribe({
 			next: (noteData) => {
-				const { notes } = this.state;
 				const updatedNote = noteData.value.data.onUpdateNote;
-				const index = notes.findIndex((note) => note.id === updatedNote.id);
-				const updatedNotes = [
-					...notes.slice(0, index),
-					updatedNote,
-					...notes.slice(index + 1)
-				];
-				this.setState({ notes: updatedNotes, note: "", id: "" });
+				setNotes((prevNotes) => {
+					const index = prevNotes.findIndex(
+						(note) => note.id === updatedNote.id
+					);
+					const updatedNotes = [
+						...prevNotes.slice(0, index),
+						updatedNote,
+						...prevNotes.slice(index + 1)
+					];
+					return updatedNotes;
+				});
+				setNote("");
+				setId("");
+				// this.setState({ notes: updatedNotes, note: "", id: "" });
 			}
 		});
 
@@ -91,8 +100,6 @@ const App = () => {
 				note
 			};
 			await API.graphql(graphqlOperation(createNote, { input }));
-
-			setNote("");
 		}
 	};
 
